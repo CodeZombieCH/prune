@@ -9,6 +9,10 @@ prune or golang-prune is a command line utility to search a directory for files 
     prune --pattern "YYYY-MM-DDThh:mm:ss.sssZ" --keep-daily 7 --dry-run .
     prune --pattern "YYYY-MM-DDThh:mm:ss.sssZ" --keep-daily 7 --dry-run --json .
 
+Alternative:
+
+    prune -0 --keep-daily 14 --keep-monthly 6 --keep-yearly 1 . | xargs -0 rm
+
 ## Usage
 
 tbd
