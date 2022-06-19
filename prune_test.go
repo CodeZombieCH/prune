@@ -31,6 +31,80 @@ func TestPruneEmpty(t *testing.T) {
 	}
 }
 
+func TestPruneNothing(t *testing.T) {
+	// Arrange
+	config := Configuration{Path: baseDirectory, KeepDaily: NoPrune, KeepMonthly: NoPrune, KeepYearly: NoPrune}
+	testDirectories := []TestObject{
+		{"2000-01-01T00-00-00.000Z", true},
+		{"2000-01-02T00-00-00.000Z", true},
+		{"2000-01-03T00-00-00.000Z", true},
+		{"2000-01-04T00-00-00.000Z", true},
+		{"2000-01-05T00-00-00.000Z", true},
+		{"2000-01-06T00-00-00.000Z", true},
+		{"2000-01-07T00-00-00.000Z", true},
+		{"2000-01-08T00-00-00.000Z", true},
+		{"2000-01-09T00-00-00.000Z", true},
+		{"2000-01-10T00-00-00.000Z", true},
+		{"2000-01-11T00-00-00.000Z", true},
+		{"2000-01-12T00-00-00.000Z", true},
+	}
+	entries := createEntries(testDirectories, t)
+
+	// Act
+	prune := NewPrune(config)
+	pruneResult, err := prune.Calculate(entries)
+	if err != nil {
+		t.Fatalf("Failed to calculate directories to prune: %s", err)
+	}
+
+	// Assert
+	if expected := 12; len(pruneResult.ToKeep) != expected {
+		t.Fatalf("Got %v, expected %v", len(pruneResult.ToKeep), expected)
+	}
+	if expected := 0; len(pruneResult.ToPrune) != expected {
+		t.Fatalf("Got %v, expected %v", len(pruneResult.ToPrune), expected)
+	}
+
+	assertResultMatchesTestObjects(testDirectories, pruneResult, t)
+}
+
+func TestPruneEverything(t *testing.T) {
+	// Arrange
+	config := Configuration{Path: baseDirectory, KeepDaily: 0, KeepMonthly: 0, KeepYearly: 0}
+	testDirectories := []TestObject{
+		{"2000-01-01T00-00-00.000Z", false},
+		{"2000-01-02T00-00-00.000Z", false},
+		{"2000-01-03T00-00-00.000Z", false},
+		{"2000-01-04T00-00-00.000Z", false},
+		{"2000-01-05T00-00-00.000Z", false},
+		{"2000-01-06T00-00-00.000Z", false},
+		{"2000-01-07T00-00-00.000Z", false},
+		{"2000-01-08T00-00-00.000Z", false},
+		{"2000-01-09T00-00-00.000Z", false},
+		{"2000-01-10T00-00-00.000Z", false},
+		{"2000-01-11T00-00-00.000Z", false},
+		{"2000-01-12T00-00-00.000Z", false},
+	}
+	entries := createEntries(testDirectories, t)
+
+	// Act
+	prune := NewPrune(config)
+	pruneResult, err := prune.Calculate(entries)
+	if err != nil {
+		t.Fatalf("Failed to calculate directories to prune: %s", err)
+	}
+
+	// Assert
+	if expected := 0; len(pruneResult.ToKeep) != expected {
+		t.Fatalf("Got %v, expected %v", len(pruneResult.ToKeep), expected)
+	}
+	if expected := 12; len(pruneResult.ToPrune) != expected {
+		t.Fatalf("Got %v, expected %v", len(pruneResult.ToPrune), expected)
+	}
+
+	assertResultMatchesTestObjects(testDirectories, pruneResult, t)
+}
+
 func TestPruneWithMultiplePerDay(t *testing.T) {
 	// Arrange
 	config := Configuration{Path: baseDirectory, KeepDaily: 4}

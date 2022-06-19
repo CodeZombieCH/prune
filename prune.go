@@ -4,12 +4,18 @@ import (
 	"time"
 )
 
+const NoPrune = -1
+
 type Configuration struct {
 	Path        string
 	Pattern     string
 	KeepDaily   int
 	KeepMonthly int
 	KeepYearly  int
+}
+
+func (c *Configuration) requiresPruning() bool {
+	return c.KeepDaily > NoPrune && c.KeepMonthly > NoPrune && c.KeepYearly > NoPrune
 }
 
 type Prune struct {
@@ -21,7 +27,7 @@ func NewPrune(c Configuration) Prune {
 }
 
 func (p *Prune) Calculate(directories []TimeStampedDirectory) (PruneResult, error) {
-	// Return immediately if emtpy set of directories
+	// Return immediately if empty set of directories
 	if len(directories) == 0 {
 		return PruneResult{Objects: make(map[string]*PruneCandidate), ToKeep: []PruneCandidate{}, ToPrune: []PruneCandidate{}}, nil
 	}
@@ -32,18 +38,26 @@ func (p *Prune) Calculate(directories []TimeStampedDirectory) (PruneResult, erro
 		objects = append(objects, PruneCandidate{Directory: directory})
 	}
 
-	// Currently we do not use an array/slice, as we need the rules to be applied in a very specific order
-	if p.config.KeepDaily > 0 {
-		rule := KeepDailyRule{KeepCount: p.config.KeepDaily}
-		rule.Apply(objects)
-	}
-	if p.config.KeepMonthly > 0 {
-		rule := KeepMonthlyRule{KeepCount: p.config.KeepMonthly}
-		rule.Apply(objects)
-	}
-	if p.config.KeepYearly > 0 {
-		rule := KeepYearlyRule{KeepCount: p.config.KeepYearly}
-		rule.Apply(objects)
+	if p.config.requiresPruning() {
+		// Currently we do not use an array/slice, as we need the rules to be applied in a very specific order
+		if p.config.KeepDaily > 0 {
+			rule := KeepDailyRule{KeepCount: p.config.KeepDaily}
+			rule.Apply(objects)
+		}
+		if p.config.KeepMonthly > 0 {
+			rule := KeepMonthlyRule{KeepCount: p.config.KeepMonthly}
+			rule.Apply(objects)
+		}
+		if p.config.KeepYearly > 0 {
+			rule := KeepYearlyRule{KeepCount: p.config.KeepYearly}
+			rule.Apply(objects)
+		}
+	} else {
+		// Nothing to prune, set the keep flag on all objects
+		for i := 0; i < len(objects); i++ {
+			object := &objects[i]
+			object.Keep = true
+		}
 	}
 
 	keep, prune := filterTimeStampedObjectByKeep(objects)
