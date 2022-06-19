@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-var baseDirectory string = "/foo/bar"
+var testBaseDirectory string = "/foo/bar"
 
 func TestPruneEmpty(t *testing.T) {
 	// Arrange
-	config := Configuration{Path: baseDirectory, KeepDaily: 7}
+	config := Configuration{Path: testBaseDirectory, KeepDaily: 7}
 	testDirectories := []TestObject{}
 	entries := createEntries(testDirectories, t)
 
@@ -33,7 +33,7 @@ func TestPruneEmpty(t *testing.T) {
 
 func TestPruneNothing(t *testing.T) {
 	// Arrange
-	config := Configuration{Path: baseDirectory, KeepDaily: NoPrune, KeepMonthly: NoPrune, KeepYearly: NoPrune}
+	config := Configuration{Path: testBaseDirectory, KeepDaily: NoPrune, KeepMonthly: NoPrune, KeepYearly: NoPrune}
 	testDirectories := []TestObject{
 		{"2000-01-01T00-00-00.000Z", true},
 		{"2000-01-02T00-00-00.000Z", true},
@@ -70,7 +70,7 @@ func TestPruneNothing(t *testing.T) {
 
 func TestPruneEverything(t *testing.T) {
 	// Arrange
-	config := Configuration{Path: baseDirectory, KeepDaily: 0, KeepMonthly: 0, KeepYearly: 0}
+	config := Configuration{Path: testBaseDirectory, KeepDaily: 0, KeepMonthly: 0, KeepYearly: 0}
 	testDirectories := []TestObject{
 		{"2000-01-01T00-00-00.000Z", false},
 		{"2000-01-02T00-00-00.000Z", false},
@@ -107,7 +107,7 @@ func TestPruneEverything(t *testing.T) {
 
 func TestPruneWithMultiplePerDay(t *testing.T) {
 	// Arrange
-	config := Configuration{Path: baseDirectory, KeepDaily: 4}
+	config := Configuration{Path: testBaseDirectory, KeepDaily: 4}
 	testDirectories := []TestObject{
 		{"2000-01-01T01-00-00.000Z", false},
 		{"2000-01-01T02-00-00.000Z", true},
@@ -149,7 +149,7 @@ func TestPruneWithMultiplePerDay(t *testing.T) {
 
 func TestPruneDaily(t *testing.T) {
 	// Arrange
-	config := Configuration{Path: baseDirectory, KeepDaily: 7}
+	config := Configuration{Path: testBaseDirectory, KeepDaily: 7}
 	testDirectories := []TestObject{
 		{"2000-01-01T00-00-00.000Z", false},
 		{"2000-01-02T00-00-00.000Z", false},
@@ -186,7 +186,7 @@ func TestPruneDaily(t *testing.T) {
 
 func TestPruneDailyAndMonthly(t *testing.T) {
 	// Arrange
-	config := Configuration{Path: baseDirectory, KeepDaily: 7, KeepMonthly: 3}
+	config := Configuration{Path: testBaseDirectory, KeepDaily: 7, KeepMonthly: 3}
 	testDirectories := []TestObject{
 		{"2000-01-03T00-00-00.000Z", false},
 		{"2000-01-10T00-00-00.000Z", false},
@@ -232,7 +232,7 @@ func TestPruneDailyAndMonthly(t *testing.T) {
 
 func TestPruneOldest(t *testing.T) {
 	// Arrange
-	config := Configuration{Path: baseDirectory, KeepDaily: 3, KeepMonthly: 2, KeepYearly: 1}
+	config := Configuration{Path: testBaseDirectory, KeepDaily: 3, KeepMonthly: 2, KeepYearly: 1}
 	testDirectories := []TestObject{
 		{"2000-01-01T00-00-00.000Z", true},
 		{"2000-04-01T00-00-00.000Z", false},
@@ -263,7 +263,7 @@ func TestPruneOldest(t *testing.T) {
 
 func TestPruneTotalCountWithAddedBackups(t *testing.T) {
 	// Arrange
-	config := Configuration{Path: baseDirectory, KeepDaily: 3, KeepMonthly: 2, KeepYearly: 1}
+	config := Configuration{Path: testBaseDirectory, KeepDaily: 3, KeepMonthly: 2, KeepYearly: 1}
 	layout := "2006-01-02T15-04-05.000Z"
 
 	// Act
@@ -313,7 +313,7 @@ func TestPruneTotalCountWithAddedBackups(t *testing.T) {
 // 2015-01-01.
 func TestPruneBorgExample(t *testing.T) {
 	// Arrange
-	config := Configuration{Path: baseDirectory, KeepDaily: 14, KeepMonthly: 6, KeepYearly: 1}
+	config := Configuration{Path: testBaseDirectory, KeepDaily: 14, KeepMonthly: 6, KeepYearly: 1}
 	testDirectories := []TestObject{
 		{"2015-01-01T00-00-00.000Z", true},
 		{"2015-01-02T00-00-00.000Z", false},
@@ -705,7 +705,7 @@ func createEntries(testObjects []TestObject, t *testing.T) []TimeStampedDirector
 		virtualDirectories = append(virtualDirectories, NewVirtualDirEntry(dir.Name, true))
 	}
 
-	entries, err := Parse(baseDirectory, virtualDirectories)
+	entries, err := Parse(testBaseDirectory, virtualDirectories)
 	if err != nil {
 		t.Fatalf("Failed to parse directories: %s", err)
 	}
@@ -715,7 +715,7 @@ func createEntries(testObjects []TestObject, t *testing.T) []TimeStampedDirector
 
 func assertResultMatchesTestObjects(testObjects []TestObject, result PruneResult, t *testing.T) {
 	for _, testObject := range testObjects {
-		if resultObject, ok := result.Objects[path.Join(baseDirectory, testObject.Name)]; ok {
+		if resultObject, ok := result.Objects[path.Join(testBaseDirectory, testObject.Name)]; ok {
 			if resultObject.Keep != testObject.ExpectedKeep {
 				t.Errorf("%v: Got %v, expected %v", resultObject.Directory.Time, resultObject.Keep, testObject.ExpectedKeep)
 			}
