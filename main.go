@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"sort"
@@ -10,16 +9,21 @@ import (
 )
 
 var (
+	logger      *log.Logger
 	errorLogger *log.Logger
 
 	baseDirectory string
+	verbose       bool
 	keepDaily     int
 	keepMonthly   int
 	keepYearly    int
 )
 
 func init() {
+	logger = log.New(os.Stdout, "", 0)
 	errorLogger = log.New(os.Stderr, "", 0)
+
+	flag.BoolVarP(&verbose, "verbose", "v", false, "verbose flag")
 
 	flag.IntVarP(&keepDaily, "keep-daily", "d", -1, "number of daily files/directories to keep")
 	flag.IntVarP(&keepMonthly, "keep-monthly", "m", -1, "number of monthly files/directories to keep")
@@ -46,9 +50,9 @@ func main() {
 }
 
 func run() error {
-	fmt.Println("keep-daily: ", keepDaily)
-	fmt.Println("keep-monthly: ", keepMonthly)
-	fmt.Println("keep-yearly: ", keepYearly)
+	if verbose {
+		logger.Printf("keep-daily: %v, keep-monthly: %v, keep-yearly: %v", keepDaily, keepMonthly, keepYearly)
+	}
 
 	// Create config
 	config := Configuration{Path: baseDirectory, KeepDaily: keepDaily, KeepMonthly: keepMonthly, KeepYearly: keepYearly}
@@ -69,6 +73,10 @@ func run() error {
 
 	printSorted(pruneResult.Objects)
 
+	if verbose {
+		printStats(pruneResult)
+	}
+
 	return err
 }
 
@@ -82,6 +90,25 @@ func printSorted(objects map[string]*PruneCandidate) {
 
 	for _, k := range keys {
 		object := objects[k]
-		errorLogger.Printf("%s: %t", object.Directory.Path, object.Keep)
+
+		if verbose {
+			var operation string
+			switch object.Keep {
+			case true:
+				operation = "keep"
+			case false:
+				operation = "prune"
+			}
+			errorLogger.Printf("%s: %s\n", object.Directory.Path, operation)
+		} else {
+			// Print only directories to prune
+			if !object.Keep {
+				logger.Println(object.Directory.Path)
+			}
+		}
 	}
+}
+
+func printStats(result PruneResult) {
+	logger.Printf("Total count: keep: %v, prune: %v\n", len(result.ToKeep), len(result.ToPrune))
 }
