@@ -14,8 +14,12 @@ type Configuration struct {
 	KeepYearly  int
 }
 
+func NewConfiguration(path string, keepDaily int, keepMonthly int, keepYearly int) Configuration {
+	return Configuration{Path: path, Pattern: "", KeepDaily: keepDaily, KeepMonthly: keepMonthly, KeepYearly: keepYearly}
+}
+
 func (c *Configuration) requiresPruning() bool {
-	return c.KeepDaily > NoPrune && c.KeepMonthly > NoPrune && c.KeepYearly > NoPrune
+	return c.KeepDaily > NoPrune || c.KeepMonthly > NoPrune || c.KeepYearly > NoPrune
 }
 
 type Prune struct {
@@ -40,15 +44,15 @@ func (p *Prune) Calculate(directories []TimeStampedDirectory) (PruneResult, erro
 
 	if p.config.requiresPruning() {
 		// Currently we do not use an array/slice, as we need the rules to be applied in a very specific order
-		if p.config.KeepDaily > 0 {
+		if p.config.KeepDaily > NoPrune {
 			rule := KeepDailyRule{KeepCount: p.config.KeepDaily}
 			rule.Apply(objects)
 		}
-		if p.config.KeepMonthly > 0 {
+		if p.config.KeepMonthly > NoPrune {
 			rule := KeepMonthlyRule{KeepCount: p.config.KeepMonthly}
 			rule.Apply(objects)
 		}
-		if p.config.KeepYearly > 0 {
+		if p.config.KeepYearly > NoPrune {
 			rule := KeepYearlyRule{KeepCount: p.config.KeepYearly}
 			rule.Apply(objects)
 		}

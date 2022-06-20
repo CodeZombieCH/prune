@@ -105,6 +105,43 @@ func TestPruneEverything(t *testing.T) {
 	assertResultMatchesTestObjects(testDirectories, pruneResult, t)
 }
 
+func TestPruneEverythingUsingKeepDaily(t *testing.T) {
+	// Arrange
+	config := Configuration{Path: testBaseDirectory, KeepDaily: 0}
+	testDirectories := []TestObject{
+		{"2000-01-01T00-00-00.000Z", false},
+		{"2000-01-02T00-00-00.000Z", false},
+		{"2000-01-03T00-00-00.000Z", false},
+		{"2000-01-04T00-00-00.000Z", false},
+		{"2000-01-05T00-00-00.000Z", false},
+		{"2000-01-06T00-00-00.000Z", false},
+		{"2000-01-07T00-00-00.000Z", false},
+		{"2000-01-08T00-00-00.000Z", false},
+		{"2000-01-09T00-00-00.000Z", false},
+		{"2000-01-10T00-00-00.000Z", false},
+		{"2000-01-11T00-00-00.000Z", false},
+		{"2000-01-12T00-00-00.000Z", false},
+	}
+	entries := createEntries(testDirectories, t)
+
+	// Act
+	prune := NewPrune(config)
+	pruneResult, err := prune.Calculate(entries)
+	if err != nil {
+		t.Fatalf("Failed to calculate directories to prune: %s", err)
+	}
+
+	// Assert
+	if expected := 0; len(pruneResult.ToKeep) != expected {
+		t.Fatalf("Got %v, expected %v", len(pruneResult.ToKeep), expected)
+	}
+	if expected := 12; len(pruneResult.ToPrune) != expected {
+		t.Fatalf("Got %v, expected %v", len(pruneResult.ToPrune), expected)
+	}
+
+	assertResultMatchesTestObjects(testDirectories, pruneResult, t)
+}
+
 func TestPruneWithMultiplePerDay(t *testing.T) {
 	// Arrange
 	config := Configuration{Path: testBaseDirectory, KeepDaily: 4}
@@ -149,7 +186,7 @@ func TestPruneWithMultiplePerDay(t *testing.T) {
 
 func TestPruneDaily(t *testing.T) {
 	// Arrange
-	config := Configuration{Path: testBaseDirectory, KeepDaily: 7}
+	config := Configuration{Path: testBaseDirectory, KeepDaily: 7, KeepMonthly: NoPrune, KeepYearly: NoPrune}
 	testDirectories := []TestObject{
 		{"2000-01-01T00-00-00.000Z", false},
 		{"2000-01-02T00-00-00.000Z", false},
@@ -175,6 +212,89 @@ func TestPruneDaily(t *testing.T) {
 
 	// Assert
 	if expected := 7; len(pruneResult.ToKeep) != expected {
+		t.Fatalf("Got %v, expected %v", len(pruneResult.ToKeep), expected)
+	}
+	if expected := 5; len(pruneResult.ToPrune) != expected {
+		t.Fatalf("Got %v, expected %v", len(pruneResult.ToPrune), expected)
+	}
+
+	assertResultMatchesTestObjects(testDirectories, pruneResult, t)
+}
+
+func TestPruneMonthly(t *testing.T) {
+	// Arrange
+	config := Configuration{Path: testBaseDirectory, KeepDaily: NoPrune, KeepMonthly: 12, KeepYearly: NoPrune}
+	testDirectories := []TestObject{
+		{"2000-01-01T00-00-00.000Z", false},
+		{"2000-02-01T00-00-00.000Z", false},
+		{"2000-03-01T00-00-00.000Z", false},
+		{"2000-04-01T00-00-00.000Z", false},
+		{"2000-05-01T00-00-00.000Z", false},
+		{"2000-06-01T00-00-00.000Z", false},
+		{"2000-07-01T00-00-00.000Z", true},
+		{"2000-08-01T00-00-00.000Z", true},
+		{"2000-09-01T00-00-00.000Z", true},
+		{"2000-10-01T00-00-00.000Z", true},
+		{"2000-11-01T00-00-00.000Z", true},
+		{"2000-12-01T00-00-00.000Z", true},
+		{"2001-01-01T00-00-00.000Z", true},
+		{"2001-02-01T00-00-00.000Z", true},
+		{"2001-03-01T00-00-00.000Z", true},
+		{"2001-04-01T00-00-00.000Z", true},
+		{"2001-05-01T00-00-00.000Z", true},
+		{"2001-06-01T00-00-00.000Z", true},
+	}
+	entries := createEntries(testDirectories, t)
+
+	// Act
+	prune := NewPrune(config)
+	pruneResult, err := prune.Calculate(entries)
+	if err != nil {
+		t.Fatalf("Failed to calculate directories to prune: %s", err)
+	}
+
+	// Assert
+	if expected := 12; len(pruneResult.ToKeep) != expected {
+		t.Fatalf("Got %v, expected %v", len(pruneResult.ToKeep), expected)
+	}
+	if expected := 6; len(pruneResult.ToPrune) != expected {
+		t.Fatalf("Got %v, expected %v", len(pruneResult.ToPrune), expected)
+	}
+
+	assertResultMatchesTestObjects(testDirectories, pruneResult, t)
+}
+
+func TestPruneYearly(t *testing.T) {
+	// Arrange
+	config := Configuration{Path: testBaseDirectory, KeepDaily: NoPrune, KeepMonthly: NoPrune, KeepYearly: 10}
+	testDirectories := []TestObject{
+		{"2000-01-01T00-00-00.000Z", false},
+		{"2001-01-01T00-00-00.000Z", false},
+		{"2002-01-01T00-00-00.000Z", false},
+		{"2003-01-01T00-00-00.000Z", false},
+		{"2004-01-01T00-00-00.000Z", false},
+		{"2005-01-01T00-00-00.000Z", true},
+		{"2006-01-01T00-00-00.000Z", true},
+		{"2007-01-01T00-00-00.000Z", true},
+		{"2008-01-01T00-00-00.000Z", true},
+		{"2009-01-01T00-00-00.000Z", true},
+		{"2010-01-01T00-00-00.000Z", true},
+		{"2011-01-01T00-00-00.000Z", true},
+		{"2012-01-01T00-00-00.000Z", true},
+		{"2013-01-01T00-00-00.000Z", true},
+		{"2014-01-01T00-00-00.000Z", true},
+	}
+	entries := createEntries(testDirectories, t)
+
+	// Act
+	prune := NewPrune(config)
+	pruneResult, err := prune.Calculate(entries)
+	if err != nil {
+		t.Fatalf("Failed to calculate directories to prune: %s", err)
+	}
+
+	// Assert
+	if expected := 10; len(pruneResult.ToKeep) != expected {
 		t.Fatalf("Got %v, expected %v", len(pruneResult.ToKeep), expected)
 	}
 	if expected := 5; len(pruneResult.ToPrune) != expected {
