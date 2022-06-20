@@ -59,7 +59,7 @@ Prune files/directories:
 
     prune -0 --keep-daily 14 --keep-monthly 6 --keep-yearly 1 /path/to/directory | xargs rm -rf
 
-- [❌] spaces
+- [✗] spaces
 - [?] globs
 
 ### xargs with NUL
