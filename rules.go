@@ -66,7 +66,7 @@ func groupBy(objects []PruneCandidate, timeConvert func(time time.Time) time.Tim
 	return groups
 }
 
-func applyKeepRule(groups map[time.Time][]*PruneCandidate, keepCount int) {
+func applyKeepRule(groups map[time.Time][]*PruneCandidate, keepCount int) int {
 	// get a sorted slice of the keys of the array
 	keys := make([]time.Time, 0, len(groups))
 	for k := range groups {
@@ -99,7 +99,7 @@ func applyKeepRule(groups map[time.Time][]*PruneCandidate, keepCount int) {
 		}
 	}
 
-	// Keep oldest object
+	// Keep oldest object if keep count not satisfied
 	if currentKeepCount < keepCount {
 		latestKey := keys[len(keys)-1]
 		relevantTimeObjects := groups[latestKey]
@@ -114,6 +114,8 @@ func applyKeepRule(groups map[time.Time][]*PruneCandidate, keepCount int) {
 			}
 		}
 	}
+
+	return currentKeepCount
 }
 
 func getNewest(candidates []*PruneCandidate) *PruneCandidate {
