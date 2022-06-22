@@ -1,5 +1,7 @@
 # Prune
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/codezombiech/prune)](https://goreportcard.com/report/github.com/codezombiech/prune)
+
 > WARNING: work in progress
 
 *prune* is a command line utility to search a directory for files and/or directories to be pruned based on a retention policy. It is mainly aimed at pruning old backups created by using timestamped directories.
