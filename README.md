@@ -96,6 +96,10 @@ Create a test repo:
 
     go build ./cmd/test-repo && ./test-repo ~/temp/test-repo
 
+Run prune against test repo
+
+    go run . -d 3 -m 2 -y 1 ~/temp/test-repo
+
 
 ## Roadmap
 
