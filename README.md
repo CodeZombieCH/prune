@@ -47,6 +47,8 @@ or with the `--verbose` option:
 
 ## Usage
 
+### Prune
+
     prune [--verbose|-v] [--pattern <pattern>]
         [--keep-daily|-d <keep-count>] [--keep-monthly|-m <keep-count>] [--keep-yearly|-y <keep-count>]
         <directory>
@@ -56,8 +58,15 @@ where
 - `<keep-count>`: number of directories to keep
 - `<directory>`: path to directory to scan for directories to prune
 
+Without the `--verbose|-v` flag, this will list all directories to be pruned.
+Setting the `--verbose|-v` flag will list all directories indicating if they would be kept/deleted and basic statistics
 
-### xargs
+
+### Prune and Delete
+
+This section describes strategies how the output of `prune` can be used to eventually  delete files/directories to be pruned.
+
+#### xargs
 
 List files/directories:
 
@@ -67,10 +76,11 @@ Prune files/directories:
 
     prune -0 --keep-daily 14 --keep-monthly 6 --keep-yearly 1 /path/to/directory | xargs rm -rf
 
+Works with:
 - [✗] spaces
 - [?] globs
 
-### xargs with NUL
+#### xargs with NUL
 
 List files/directories:
 
@@ -80,16 +90,18 @@ Prune files/directories:
 
     prune -0 --keep-daily 14 --keep-monthly 6 --keep-yearly 1 /path/to/directory | xargs -0 rm
 
+Works with:
 - [✓] spaces
 - [?] globs
 
 based on https://stackoverflow.com/a/16758699/548020
 
-### Shell Script
+#### Shell Script (preferred)
 
     prune --keep-daily 14 --keep-monthly 6 --keep-yearly 1 /path/to/directory > prune.list
     while IFS= read -r file ; do rm -rf -- "$file" ; done < prune.list
 
+Works with:
 - [✓] spaces
 - [✓] globs
 
