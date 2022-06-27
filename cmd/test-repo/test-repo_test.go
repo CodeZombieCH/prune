@@ -109,10 +109,7 @@ func TestRepoISODateOnly(t *testing.T) {
 	fmt.Println(repoPath)
 
 	// Arrange
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-	os.Args = []string{
-		"cmd",
+	args := []string{
 		"--pattern",
 		"%Y-%m-%d",
 		repoPath,
@@ -122,12 +119,10 @@ func TestRepoISODateOnly(t *testing.T) {
 	}
 
 	// Act
-	pattern = "%Y-%m-%d" // <========= Evil hack: override parsed and cached flags
-	main()
-
-	cmd := exec.Command("ls", "-la", repoPath)
-	out, _ := cmd.CombinedOutput()
-	fmt.Println(string(out))
+	err := runPrune(args)
+	if err != nil {
+		t.Fatalf("prune failed with %v", err)
+	}
 
 	// Assert
 	dirSpotChecks := map[string]bool{
@@ -149,13 +144,9 @@ func TestRepoISODateOnly(t *testing.T) {
 
 func TestRepoISODateAndTime(t *testing.T) {
 	repoPath := t.TempDir()
-	fmt.Println(repoPath)
 
 	// Arrange
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-	os.Args = []string{
-		"cmd",
+	args := []string{
 		repoPath,
 		"2000-01-01...2000-01-31",
 		"2000-02-28",
@@ -163,12 +154,10 @@ func TestRepoISODateAndTime(t *testing.T) {
 	}
 
 	// Act
-	pattern = "%Y-%m-%dT%H-%M-%SZ" // <========= Evil hack: override parsed and cached flags
-	main()
-
-	cmd := exec.Command("ls", "-la", repoPath)
-	out, _ := cmd.CombinedOutput()
-	fmt.Println(string(out))
+	err := runPrune(args)
+	if err != nil {
+		t.Fatalf("prune failed with %v", err)
+	}
 
 	// Assert
 	dirSpotChecks := map[string]bool{
@@ -186,6 +175,17 @@ func TestRepoISODateAndTime(t *testing.T) {
 		"2000-03-31T00-00-00Z": true,
 	}
 	assertExistance(repoPath, dirSpotChecks, t)
+}
+
+func runPrune(args []string) error {
+	goArgs := append([]string{"run", "."}, args...)
+	cmd := exec.Command("go", goArgs...)
+	out, err := cmd.CombinedOutput()
+	fmt.Println(string(out))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func dirExists(path string) bool {
