@@ -47,6 +47,16 @@ or with the `--verbose` option:
 
 ## Usage
 
+    prune [--verbose|-v] [--pattern <pattern>]
+        [--keep-daily|-d <keep-count>] [--keep-monthly|-m <keep-count>] [--keep-yearly|-y <keep-count>]
+        <directory>
+
+where
+- `<pattern>`: pattern to use to parse the date/time from the directory name
+- `<keep-count>`: number of directories to keep
+- `<directory>`: path to directory to scan for directories to prune
+
+
 ### xargs
 
 List files/directories:
@@ -103,12 +113,13 @@ Run prune against test repo
 
 ### v0.1
 
-- Support basic `--keep-*` flags
-- Print files to prune to *stdout*
+- Support basic `--keep-*` options
+- Print directories to prune to *stdout*
+- Print all directories with keep/status to *stdout* when `--verbose` flag is set
+- Support `--pattern` option, defining the pattern used to parse the date of the timestamped directories
 
 ### v0.2
 
-- Support `-p|--pattern` option, defining the pattern used to parse the date of the timestamped directories
 - Evaluate if `<pattern>` should be an option or a mandatory argument. If option, what would be a sane default?
 - Evaluate what is more clear, `--pattern` or `--format`
 
