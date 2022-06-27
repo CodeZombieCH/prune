@@ -17,6 +17,7 @@ var (
 	keepDaily     int
 	keepMonthly   int
 	keepYearly    int
+	pattern       string
 )
 
 func init() {
@@ -28,6 +29,9 @@ func init() {
 	flag.IntVarP(&keepDaily, "keep-daily", "d", -1, "number of daily files/directories to keep")
 	flag.IntVarP(&keepMonthly, "keep-monthly", "m", -1, "number of monthly files/directories to keep")
 	flag.IntVarP(&keepYearly, "keep-yearly", "y", -1, "number of yearly files/directories to keep")
+
+	// TODO: evaluate sane default (if a default makes sense at all)
+	flag.StringVarP(&pattern, "pattern", "p", PatternAlmostISO8601DateAndTime, "strptime pattern used to parse the date from the name of the timestamped directory")
 }
 
 func main() {
@@ -54,10 +58,18 @@ func run() error {
 		logger.Printf("keep-daily: %v, keep-monthly: %v, keep-yearly: %v", keepDaily, keepMonthly, keepYearly)
 	}
 
-	// Create config
-	config := Configuration{Path: baseDirectory, KeepDaily: keepDaily, KeepMonthly: keepMonthly, KeepYearly: keepYearly}
+	// TODO: validate pattern
 
-	traverser := FileSystemTraverser{}
+	// Create config
+	config := Configuration{
+		Path:        baseDirectory,
+		Pattern:     pattern,
+		KeepDaily:   keepDaily,
+		KeepMonthly: keepMonthly,
+		KeepYearly:  keepYearly,
+	}
+
+	traverser := FileSystemTraverser{Pattern: pattern}
 	objects, err := traverser.GetObjects(baseDirectory)
 	if err != nil {
 		errorLogger.Printf("Failed to retrieve directories")

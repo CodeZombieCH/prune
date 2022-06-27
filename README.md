@@ -10,43 +10,39 @@ Currently *prune* does not have the goal to delete the files/directories to prun
 
 ## Example
 
-Consider the following backup repository:
+Consider a backup strategy where you backup your files as compressed tar archives. Each backup isstored in a directory using the following pattern
 
-    /backup-repo/
-    ├── 2000-01-01T00-00-00.000Z
-    ├── 2000-02-01T00-00-00.000Z
-    ├── 2000-03-01T00-00-00.000Z
-    ├── 2000-04-01T00-00-00.000Z
-    ├── 2000-05-01T00-00-00.000Z
-    ├── 2000-06-01T00-00-00.000Z
-    ├── 2000-07-01T00-00-00.000Z
-    ├── 2000-08-01T00-00-00.000Z
-    ├── 2000-09-01T00-00-00.000Z
+    /backups/<timestamp>/
 
-Running prune and instructing it to keep the latest 6 monthly backups
+where `<timestamp>` represents the date the backup was created using the `%Y-%m-%dT%H-%M-%S%z` format
 
-    prune --keep-monthly 6 /backup-repo/
+Running this strategy every day from 2000-01-01 to 2000-01-03 would result in the following directory tree:
 
-would result in the following output:
+    /backups
+    ├── 2000-01-01T00-00-00Z
+    │   ├── backup-2000-01-01T00-00-00Z.tar.gz
+    │   └── backup-2000-01-01T00-00-00Z.tar.gz.sha256sum
+    ├── 2000-01-02T00-00-00Z
+    │   ├── backup-2000-01-02T00-00-00Z.tar.gz
+    │   └── backup-2000-01-02T00-00-00Z.tar.gz.sha256sum
+    └── 2000-01-03T00-00-00Z
+        ├── backup-2000-01-03T00-00-00Z.tar.gz
+        └── backup-2000-01-03T00-00-00Z.tar.gz.sha256sum
 
-    /backup-repo/2000-04-01T00-00-00.000Z
-    /backup-repo/2000-05-01T00-00-00.000Z
-    /backup-repo/2000-06-01T00-00-00.000Z
-    /backup-repo/2000-07-01T00-00-00.000Z
-    /backup-repo/2000-08-01T00-00-00.000Z
-    /backup-repo/2000-09-01T00-00-00.000Z
+Running `prune` and instructing it to keep the latest 2 daily backups
+
+    prune --pattern '%Y-%m-%dT%H-%M-%S%z' --keep-daily 2 /backups
+
+would result in the following output, reporting paths to directories that should be pruned:
+
+    /backups/2000-01-01T00-00-00Z
 
 or with the `--verbose` option:
 
-    /backup-repo/2000-01-01T00-00-00.000Z: prune
-    /backup-repo/2000-02-01T00-00-00.000Z: prune
-    /backup-repo/2000-03-01T00-00-00.000Z: prune
-    /backup-repo/2000-04-01T00-00-00.000Z: keep
-    /backup-repo/2000-05-01T00-00-00.000Z: keep
-    /backup-repo/2000-06-01T00-00-00.000Z: keep
-    /backup-repo/2000-07-01T00-00-00.000Z: keep
-    /backup-repo/2000-08-01T00-00-00.000Z: keep
-    /backup-repo/2000-09-01T00-00-00.000Z: keep
+    /backups/2000-01-01T00-00-00Z: prune
+    /backups/2000-01-02T00-00-00Z: keep
+    /backups/2000-01-03T00-00-00Z: keep
+    Total count: keep: 2, prune: 1
 
 
 ## Usage
@@ -96,7 +92,7 @@ based on https://stackoverflow.com/a/21848934/548020
 
 Create a test repo:
 
-    go build ./cmd/test-repo && ./test-repo ~/temp/test-repo
+    go run ./cmd/test-repo --pattern '%Y-%m-%dT%H-%M-%SZ' ~/temp/test-repo 2000-12-01...2001-01-31
 
 Run prune against test repo
 
@@ -112,11 +108,13 @@ Run prune against test repo
 
 ### v0.2
 
-- Support `-0|--null` flag to write null terminated list of files to *stdout*
+- Support `-p|--pattern` option, defining the pattern used to parse the date of the timestamped directories
+- Evaluate if `<pattern>` should be an option or a mandatory argument. If option, what would be a sane default?
+- Evaluate what is more clear, `--pattern` or `--format`
 
 ### v0.3
 
-- Support `-p|--pattern` flag?
+- Support `-0|--null` flag to write null terminated list of files to *stdout*
 
 
 ## Ideas
@@ -125,6 +123,7 @@ Run prune against test repo
 - Allow outputting JSON for better scripting support by introducing a `--json` flag
 - Introduces option to write a list of files to prune to a file, so it can be reviewed and used as input to actually delete the files/directories. A suitable format is yet to be discovered.
 - Perform the actual delete operation (https://pkg.go.dev/os#RemoveAll), but also introduce a `--dry-run` flag. Not sure if this is the way to go though
+- Allow passing multiple directories, which all feed into a union set of backups. This would allow pruning a single type of backups being created using different backup strategies (versions of a backup script)
 
 
 

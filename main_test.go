@@ -31,12 +31,12 @@ func TestPrune(t *testing.T) {
 
 	// Assert
 	expected := []string{
-		"2000-01-02T00-00-00.000Z",
-		"2000-10-29T00-00-00.000Z",
-		"2000-11-26T00-00-00.000Z",
-		"2000-12-24T00-00-00.000Z",
-		"2000-12-31T00-00-00.000Z",
-		"2001-01-07T00-00-00.000Z",
+		"2000-01-01T00-00-00Z",
+		"2000-10-31T00-00-00Z",
+		"2000-11-30T00-00-00Z",
+		"2000-12-30T00-00-00Z",
+		"2000-12-31T00-00-00Z",
+		"2001-01-01T00-00-00Z",
 	}
 
 	files, err := os.ReadDir(repoPath)
@@ -56,7 +56,7 @@ func TestPrune(t *testing.T) {
 }
 
 func createRepo(repoPath string, t *testing.T) {
-	args := []string{repoPath}
+	args := []string{repoPath, "2000-01-01...2001-01-01"}
 	goArgs := append([]string{"run", "./cmd/test-repo"}, args...)
 
 	cmd := exec.Command("go", goArgs...)

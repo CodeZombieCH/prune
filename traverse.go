@@ -6,9 +6,15 @@ import (
 	"os"
 	"path"
 	"time"
+
+	"github.com/itchyny/timefmt-go"
 )
 
+const PatternISO8601DateOnly = "%Y-%m-%d"
+const PatternAlmostISO8601DateAndTime = "%Y-%m-%dT%H-%M-%S%z"
+
 type FileSystemTraverser struct {
+	Pattern string
 }
 
 func (t *FileSystemTraverser) GetObjects(basePath string) ([]TimeStampedDirectory, error) {
@@ -22,7 +28,7 @@ func (t *FileSystemTraverser) GetObjects(basePath string) ([]TimeStampedDirector
 		return nil, err
 	}
 
-	objects, err := Parse(basePath, entries)
+	objects, err := Parse(basePath, t.Pattern, entries)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +36,7 @@ func (t *FileSystemTraverser) GetObjects(basePath string) ([]TimeStampedDirector
 	return objects, nil
 }
 
-func Parse(basePath string, entries []fs.DirEntry) ([]TimeStampedDirectory, error) {
+func Parse(basePath string, pattern string, entries []fs.DirEntry) ([]TimeStampedDirectory, error) {
 
 	objects := []TimeStampedDirectory{}
 
@@ -41,14 +47,20 @@ func Parse(basePath string, entries []fs.DirEntry) ([]TimeStampedDirectory, erro
 
 		// Parse
 		name := entry.Name() // Read once and cache to reduce system calls
-		layout := "2006-01-02T15-04-05.000Z"
-		t, err := time.Parse(layout, name)
+
+		t, err := timefmt.Parse(name, pattern)
 		if err != nil {
-			log.Printf("getObjects: failed to parse date for directory entry %v: %v", entry, err)
+			log.Printf("getObjects: failed to parse date for directory entry %v: %v", name, err)
 			continue
 		}
 
 		objects = append(objects, TimeStampedDirectory{Name: name, Path: path.Join(basePath, name), Time: t})
+	}
+
+	// Issue warning when no directory was matched by the pattern
+	// TODO: should we return an error?
+	if len(entries) > 0 && len(objects) == 0 {
+		log.Printf("traverse: failed to parse date for all directory entries. Is your pattern '%v' valid?", pattern)
 	}
 
 	return objects, nil
