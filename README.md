@@ -58,13 +58,13 @@ where
 - `<keep-count>`: number of directories to keep
 - `<directory>`: path to directory to scan for directories to prune
 
-Without the `--verbose|-v` flag, this will list all directories to be pruned.
-Setting the `--verbose|-v` flag will list all directories indicating if they would be kept/deleted and basic statistics
+Without the `--verbose|-v` flag, *prune* list all directories to be pruned.
+With the `--verbose|-v` flag, *prune* lists all directories indicating if they would be kept/deleted and basic statistics
 
 
 ### Prune and Delete
 
-This section describes strategies how the output of `prune` can be used to eventually  delete files/directories to be pruned.
+This section describes strategies how the output of *prune* can be used to eventually delete files/directories to be pruned.
 
 #### xargs
 
